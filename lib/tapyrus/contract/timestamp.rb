@@ -37,13 +37,48 @@ module Tapyrus
       def save!
         raise Tapyrus::Contract::Errors::TxAlreadyBroadcasted if @txid
 
-        @tx = create_tx(@prefix, Tapyrus.sha256(@content), @sender, @fee_provider)
+        @tx = create_tx(@prefix, Timestamp.content_hash(@content), @sender, @fee_provider)
         keys = [@sender.key.to_wif]
         @tx = sign_tx(@tx, keys)
         @txid = broadcast_tx(@tx)
       end
 
+      def self.validate!(txid:, content:, rpc:, sender: nil, prefix: nil)
+        tx = find!(txid, rpc)
+        script = tx.outputs.map(&:script_pubkey).find(&:op_return?)
+        raise Tapyrus::Contract::Errors::OpReturnDataNotFound unless script
+
+        payload = script.op_return_data
+        raise Tapyrus::Contract::Errors::InvalidPrefix if prefix && !payload.start_with?(prefix)
+
+        hash = if prefix 
+          payload[prefix.size..]
+        else
+          payload
+        end
+        raise Tapyrus::Contract::Errors::InvalidHashValue unless hash == Timestamp.content_hash(content)
+
+        if sender
+          p2pkh = Tapyrus::Script.parse_from_payload(sender.to_p2pkh)
+          for i in (0...tx.inputs.size)
+            raise Tapyrus::Contract::Errors::InvalidSender unless tx.verify_input_sig(i, p2pkh)
+          end
+        end
+        true
+      end
+
       private
+
+      def self.content_hash(content)
+        Tapyrus.sha256(content)
+      end
+
+      def self.find(txid, rpc)
+        response = rpc.getrawtransaction(txid)
+        Tapyrus::Tx.parse_from_payload(response.htb)
+      rescue => e
+        raise Tapyrus::Contract::Errors::TransactionNotFound
+      end
 
       def create_tx(prefix, data_hash, sender, fee_provider)
         tx = Tapyrus::Tx.new

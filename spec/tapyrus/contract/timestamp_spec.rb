@@ -56,4 +56,24 @@ RSpec.describe 'Tapyrus::Contract::Timestamp' do
       it { expect { subject }.to raise_error(Tapyrus::Contract::Errors::TxAlreadyBroadcasted) }
     end
   end
+
+  describe '.validate!' do
+    subject do
+      Tapyrus::Contract::Timestamp.validate!(
+        txid: "4a49e978c0cbcef4326a543de33413521c224ed0819d788f74abbd7f3fa4e6e",
+        content: "\x01\x02\x03",
+        rpc: rpc,
+        sender: sender,
+        prefix: '\xFF'
+      )
+    end
+
+    before do
+      allow(rpc).to receive(:getrawtransaction)
+    end
+
+    context 'valid' do
+
+    end
+  end
 end
