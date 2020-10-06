@@ -266,32 +266,6 @@ RSpec.describe 'Glueby::Contract::TxBuilder' do
     end
   end
 
-  describe '#collect_colored_outputs' do
-    subject { mock.collect_colored_outputs(results, color_id, amount) }
-
-    let(:results) { unspents }
-    let(:amount) { 50_000 }
-    let(:color_id) { Tapyrus::Color::ColorIdentifier.parse_from_payload('c150ad685ec8638543b2356cb1071cf834fb1c84f5fa3a71699c3ed7167dfcdbb3'.htb) }
-
-    it { expect(subject[0]).to eq 100_000 }
-    it { expect(subject[1].size).to eq 1 }
-
-    context 'does not have enough token' do
-      let(:amount) { 200_001 }
-
-      it { expect { subject }.to raise_error Glueby::Contract::Errors::InsufficientTokens }
-    end
-
-    context 'if specified amount is 0' do
-      let(:amount) { 0 }
-
-      it 'should return all outputs which has the color_id' do
-        expect(subject[0]).to eq 200_000
-        expect(subject[1].size).to eq 2
-      end
-    end
-  end
-
   describe '#dummy_tx' do
     subject { mock.dummy_tx(Tapyrus::Tx.new) }
 

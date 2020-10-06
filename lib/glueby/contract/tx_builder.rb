@@ -103,8 +103,7 @@ module Glueby
       def create_transfer_tx(color_id:, sender:, receiver:, amount:, fee_provider: FixedFeeProvider.new)
         tx = Tapyrus::Tx.new
 
-        utxos = sender.internal_wallet.list_unspent
-        sum_token, outputs = collect_colored_outputs(utxos, color_id, amount)
+        sum_token, outputs = sender.internal_wallet.collect_colored_outputs(color_id, amount)
         fill_input(tx, outputs)
 
         receiver_script = Tapyrus::Script.parse_from_addr(receiver.internal_wallet.receive_address)
@@ -124,8 +123,7 @@ module Glueby
       def create_burn_tx(color_id:, sender:, amount: 0, fee_provider: FixedFeeProvider.new)
         tx = Tapyrus::Tx.new
 
-        utxos = sender.internal_wallet.list_unspent
-        sum_token, outputs = collect_colored_outputs(utxos, color_id, amount)
+        sum_token, outputs = sender.internal_wallet.collect_colored_outputs(color_id, amount)
         fill_input(tx, outputs)
 
         fill_change_token(tx, sender, sum_token - amount, color_id) if amount.positive?
@@ -160,26 +158,6 @@ module Glueby
         change_script = Tapyrus::Script.parse_from_addr(wallet.internal_wallet.change_address)
         change_colored_script = change_script.add_color(color_id)
         tx.outputs << Tapyrus::TxOut.new(value: change, script_pubkey: change_colored_script)
-      end
-
-      # Returns the set of utxos that satisfies the specified amount and has the specified color_id.
-      # if amount is not specified or 0, return all utxos with color_id
-      # @param results [Array] response of Glueby::Internal::Wallet#list_unspent
-      # @param color_id [Tapyrus::Color::ColorIdentifier] color identifier
-      # @param amount [Integer]
-      def collect_colored_outputs(results, color_id, amount = 0)
-        results = results.inject([0, []]) do |sum, output|
-          next sum unless output[:color_id] == color_id.to_hex
-
-          new_sum = sum[0] + output[:amount]
-          new_outputs = sum[1] << output
-          return [new_sum, new_outputs] if new_sum >= amount && amount.positive?
-
-          [new_sum, new_outputs]
-        end
-        raise Glueby::Contract::Errors::InsufficientTokens if amount.positive?
-
-        results
       end
 
       # Add dummy inputs and outputs to tx

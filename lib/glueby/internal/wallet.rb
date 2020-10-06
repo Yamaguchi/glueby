@@ -108,6 +108,24 @@ module Glueby
         raise Glueby::Contract::Errors::InsufficientFunds
       end
 
+      # Returns the set of utxos that satisfies the specified amount and has the specified color_id.
+      # @param color_id [Tapyrus::Color::ColorIdentifier] color identifier
+      # @param amount [Integer]
+      def collect_colored_outputs(color_id, amount = 0)
+        utxos = list_unspent
+        results = utxos.inject([0, []]) do |sum, output|
+          next sum unless output[:color_id] == color_id.to_hex
+
+          new_sum = sum[0] + output[:amount]
+          new_outputs = sum[1] << output
+          return [new_sum, new_outputs] if new_sum >= amount && amount.positive?
+
+          [new_sum, new_outputs]
+        end
+        raise Glueby::Contract::Errors::InsufficientTokens if amount.positive?
+        results
+      end
+
       private
 
       def wallet_adapter

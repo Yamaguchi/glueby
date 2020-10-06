@@ -155,8 +155,7 @@ module Glueby
       # @return [Integer] amount of utxo value associated with this token.
       def amount(wallet:)
         # collect utxo associated with this address
-        utxos = wallet.internal_wallet.list_unspent
-        _, results = collect_colored_outputs(utxos, color_id)
+        _, results = wallet.internal_wallet.collect_colored_outputs(color_id)
         results.sum { |result| result[:amount] }
       end
 
