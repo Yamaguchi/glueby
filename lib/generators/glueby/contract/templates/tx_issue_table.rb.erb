@@ -1,0 +1,14 @@
+class CreateTxIssue < ActiveRecord::Migration<%= migration_version %>
+  def change
+    create_table :issues<%= table_options %> do |t|
+      t.string     :txid, null: true
+      t.integer    :status, null: false
+      t.bigint     :amount, null: false
+      t.string     :issuer_wallet_id, null: false
+      t.belongs_to :token
+      t.timestamps
+    end
+
+    add_index :issues, [:txid], unique: true
+  end
+end

@@ -1,0 +1,14 @@
+class CreateToken < ActiveRecord::Migration<%= migration_version %>
+  def change
+    create_table :tokens<%= table_options %> do |t|
+      t.integer :token_type, null: false
+      t.string :color_id, null: false
+      t.string :script_pubkey, null: true
+      t.timestamps
+    end
+
+    add_index :tokens, [:color_id], unique: true
+    add_index :tokens, [:token_type]
+    add_index :tokens, [:script_pubkey], unique: true
+  end
+end
