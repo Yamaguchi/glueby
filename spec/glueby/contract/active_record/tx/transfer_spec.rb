@@ -64,6 +64,12 @@ RSpec.describe 'Glueby::Contract::AR::Tx::Transfer' do
       it { is_expected.to be_falsy }
     end
 
+    context 'if receiver_wallet_id is invalid' do
+      let(:receiver_wallet_id) { '00000000000000000000000000000001F' }
+
+      it { is_expected.to be_falsy }
+    end
+
     context 'if amount is not positive' do
       let(:amount) { 0 }
 

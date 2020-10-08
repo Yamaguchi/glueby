@@ -10,6 +10,7 @@ RSpec.describe 'Glueby::Contract::AR::Tx::Reissue' do
       t.string     :txid, null: true
       t.integer    :status, null: false
       t.bigint     :amount, null: false
+      t.string     :receiver_wallet_id, null: false
       t.belongs_to :token, null: false
       t.timestamps
     end
@@ -42,7 +43,8 @@ RSpec.describe 'Glueby::Contract::AR::Tx::Reissue' do
   describe '#valid?' do
     subject { tx.valid? }
 
-    let(:tx) { Glueby::Contract::AR::Tx::Reissue.new(amount: amount, txid: txid, status: status, token: token) }
+    let(:tx) { Glueby::Contract::AR::Tx::Reissue.new(receiver_wallet_id: receiver_wallet_id, amount: amount, txid: txid, status: status, token: token) }
+    let(:receiver_wallet_id) { '00000000000000000000000000000002' }
     let(:amount) { 1 }
     let(:txid) { '0000000000000000000000000000000000000000000000000000000000000001' }
     let(:status) { :init }
@@ -53,6 +55,12 @@ RSpec.describe 'Glueby::Contract::AR::Tx::Reissue' do
     let(:issuer_wallet_id) { '00000000000000000000000000000001' }
 
     it { is_expected.to be_truthy }
+
+    context 'if receiver_wallet_id is invalid' do
+      let(:receiver_wallet_id) { '00000000000000000000000000000001F' }
+
+      it { is_expected.to be_falsy }
+    end
 
     context 'if amount is not positive' do
       let(:amount) { 0 }

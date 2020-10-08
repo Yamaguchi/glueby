@@ -4,6 +4,7 @@ class CreateTxReissue < ActiveRecord::Migration<%= migration_version %>
       t.string     :txid, null: true
       t.integer    :status, null: false
       t.bigint     :amount, null: false
+      t.string     :receiver_wallet_id, null: false
       t.belongs_to :token
       t.timestamps
     end
