@@ -2,7 +2,7 @@ class CreateToken < ActiveRecord::Migration<%= migration_version %>
   def change
     create_table :tokens<%= table_options %> do |t|
       t.integer :token_type, null: false
-      t.string :color_id, null: false
+      t.string :color_id, null: true
       t.string :script_pubkey, null: true
       t.string :issuer_wallet_id, null: false
       t.timestamps
