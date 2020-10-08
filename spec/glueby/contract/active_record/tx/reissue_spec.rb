@@ -85,5 +85,17 @@ RSpec.describe 'Glueby::Contract::AR::Tx::Reissue' do
 
       it { is_expected.to be_falsy }
     end
+
+    context 'if token is not reissuable' do
+      let(:token_type) { Tapyrus::Color::TokenTypes::NFT }
+
+      it { is_expected.to be_falsy }
+    end
+
+    context 'if script_pubkey is invalid' do
+      let(:script_pubkey) { nil }
+
+      it { is_expected.to be_falsy }
+    end
   end
 end
